@@ -1,59 +1,96 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/wait.h>
+#include "shell.h"
 
-void print_prompt();
+int parse_line(char *line, char **argv) {
+  int num_args = 0;
+  char *sep = " ";
+  char *token = strtok(line, sep);
 
+  while (token != NULL) {
+    argv[num_args++] = token;
+    token = strtok(NULL, sep);
+  }
 
-int shell(char **environ) {
-    char command[1024];  /* Increase buffer size for longer commands (optional) */
-    int status;
+  argv[num_args] = NULL;  /* NULL terminate the argument list
+  return num_args; */
+}
 
-    while (1) {
-        print_prompt();
+int execute(char **argv) {
+  if (argv[0] == NULL) {  /* Empty command */
+    return 1;
+  }
 
-        /* Read command from user */
-        if (fgets(command, sizeof(command), stdin) == NULL) {
-            if (feof(stdin)) {  /* Handle Ctrl+D */
-                printf("\n");
-                break;
-            } else {
-                perror("fgets");
-                return EXIT_FAILURE;
-            }
-        }
+  if (strcmp(argv[0], "cd") == 0) {
+    if (argv[1] == NULL) {
+      chdir(getenv("HOME"));  /* Change to home directory */
+    } else {
+      if (chdir(argv[1]) != 0) {
+        perror("hsh");
+      }
+    }
+    return 1;
+  } else if (strcmp(argv[0], "exit") == 0) {
+    exit(0);
+  }
 
-        /* Remove trailing newline from command */
-        command[strcspn(command, "\n")] = '\0';
+  pid_t pid = fork();
+  if (pid == -1) {
+    perror("fork");
+    return 1;
+  } else if (pid == 0) {
+    /* Child process */
+    if (execve(argv[0], argv, NULL) == -1) {
+      perror(argv[0]);
+      exit(1);
+    }
+  } else {
+    /* Parent process */
+    wait(NULL);
+  }
 
-        /* Check for empty command */
-        if (strlen(command) == 0) {
-            continue;
-        }
+  return 1;
+}
 
-        /* Create a child process */
-        pid_t child_pid = fork();
+void print_prompt(void) {
+  printf("$ ");
+  fflush(stdout);
+}
 
-        if (child_pid < 0) {
-            perror("fork");
-            continue;
-        } else if (child_pid == 0) {
-            /* Child process */
-            /* Use execve to execute command with environment */
-            execve(command, NULL, environ);
-            perror("execve");  /* Print error if execve fails */
-            exit(EXIT_FAILURE);
-        } else {
-            /* Parent process */
-            waitpid(child_pid, &status, 0);  /* Wait for child to finish */
+int main(int argc, char *argv[]) {
+  char line[MAX_LINE];
+  char *argv_list[MAX_ARGS];
 
-            if (!WIFEXITED(status) || WEXITSTATUS(status) != EXIT_SUCCESS) {
-                printf("Command failed.\n");
-            }
-        }
+  if (argc > 1) {  /* Non-interactive mode */
+    FILE *fp = fopen(argv[1], "r");
+    if (fp == NULL) {
+      perror("fopen");
+      return 1;
     }
 
-    return EXIT_SUCCESS;
+    while (fgets(line, MAX_LINE, fp) != NULL) {
+      if (line[strlen(line) - 1] == '\n') {
+        line[strlen(line) - 1] = '\0';  /*Remove trailing newline*/
+      }
+      parse_line(line, argv_list);
+      execute(argv_list);
+    }
+
+    fclose(fp);
+    return 0;
+  }
+
+  while (1) {
+    print_prompt();
+    if (fgets(line, MAX_LINE, stdin) == NULL) {
+      break;  /* Exit on EOF */
+    }
+
+    if (line[strlen(line) - 1] == '\n') {
+      line[strlen(line) - 1] = '\0';  /* Remove trailing newline*/
+    }
+
+    parse_line(line, argv_list);
+    execute(argv_list);
+  }
+
+  return 0;
 }
