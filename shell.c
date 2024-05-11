@@ -1,84 +1,61 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <errno.h>
-#include <signal.h>
-#include <fcntl.h>
+#include <stdio.h> /* Standard input/output functions */
+#include <stdlib.h> /* Standard library functions, including exit */
+#include <string.h> /* String manipulation functions */
+#include <unistd.h> /* Unix standard function calls, including fork, execve */
+#include <sys/wait.h> /* Wait related functions */
 
-#define MAX_COMMAND_LENGTH 100
-#define MAX_ERROR_MSG_LENGTH 200
-
-/* Function to display prompt */
-void display_prompt() {
-    write(STDOUT_FILENO, "$ ", 2); /* Using write instead of printf for prompt */
-}
+#define MAX_LINE 256 /* Maximum length of a command line */
 
 int main() {
-    char command[MAX_COMMAND_LENGTH];
-    pid_t pid;
-    int status;
-    ssize_t num_read; /* Declaration moved to before any executable statement */
+  /* Define the prompt string */
+  char prompt[] = "#cisfun$ ";
+  char line[MAX_LINE];
+  int running = 1;
 
-    while (1) {
-        /* Display prompt */
-        display_prompt();
+  while (running) {
+    /* Print the prompt */
+    printf("%s", prompt);
 
-        /* Read command */
-        num_read = read(STDIN_FILENO, command, sizeof(command)); /* Declaration moved before the first executable statement */
-        if (num_read == -1) {
-            perror("read");
-            exit(EXIT_FAILURE);
-        } else if (num_read == 0) {
-            /* Handle EOF */
-            write(STDOUT_FILENO, "\nExiting shell...\n", 19); /* Using write instead of printf */
-            break;
-        }
-
-        /* Null-terminate the command */
-        command[num_read - 1] = '\0'; /* Remove newline character */
-
-        /* Fork a child process */
-        pid = fork();
-
-        if (pid < 0) {
-            perror("fork");
-            exit(EXIT_FAILURE);
-        } else if (pid == 0) {
-            /* Child process */
-            char *args[2]; /* Declare arguments array without initialization */
-            args[0] = command; /* Initialize args[0] with command */
-            args[1] = NULL; /* Set the last element to NULL */
-            if (execve(command, args, NULL) == -1) {
-                /* Handle command not found */
-                char error_msg[MAX_ERROR_MSG_LENGTH];
-                snprintf(error_msg, sizeof(error_msg), "Command not found: %s\n", command);
-                write(STDOUT_FILENO, error_msg, strlen(error_msg)); /* Using write instead of printf */
-                _exit(EXIT_FAILURE); /* Using _exit instead of exit in child process */
-            }
-        } else {
-            /* Parent process */
-            if (waitpid(pid, &status, 0) == -1) {
-                perror("waitpid");
-                exit(EXIT_FAILURE);
-            }
-            if (WIFEXITED(status)) {
-                /* Child exited normally */
-                if (WEXITSTATUS(status) == EXIT_FAILURE) {
-                    char error_msg[MAX_ERROR_MSG_LENGTH];
-                    snprintf(error_msg, sizeof(error_msg), "Command failed: %s\n", command);
-                    write(STDERR_FILENO, error_msg, strlen(error_msg)); /* Using write instead of fprintf */
-                }
-            } else if (WIFSIGNALED(status)) {
-                /* Child terminated by signal */
-                char error_msg[MAX_ERROR_MSG_LENGTH];
-                snprintf(error_msg, sizeof(error_msg), "Command terminated by signal: %s\n", command);
-                write(STDERR_FILENO, error_msg, strlen(error_msg)); /* Using write instead of fprintf */
-            }
-        }
+    /* Read user input */
+    if (fgets(line, MAX_LINE, stdin) == NULL) {
+      /* Handle end of file (Ctrl+D) */
+      if (feof(stdin)) {
+        printf("\n");
+      } else {
+        perror("fgets");
+      }
+      break;
     }
 
-    return 0;
+    /* Remove trailing newline */
+    line[strcspn(line, "\n")] = '\0';
+
+    if (strcmp(line, "exit") == 0) {
+      /* Handle exit command */
+      running = 0;
+    } else {
+      /* Fork a child process */
+      pid_t pid = fork();
+
+      if (pid < 0) {
+        perror("fork");
+        continue;
+      } else if (pid == 0) {
+        /* Child process */
+        /* Replace current process with the desired program */
+        if (execve(line, NULL, environ) == -1) {
+          printf("./shell: %s: No such file or directory\n", line);
+        }
+        exit(EXIT_FAILURE);
+      } else {
+        /* Parent process */
+        /* Wait for child process to finish */
+        int status;
+        wait(&status);
+      }
+    }
+  }
+
+  return 0;
 }
+
