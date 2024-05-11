@@ -16,6 +16,8 @@ void display_prompt() {
 
 int main() {
     char command[MAX_COMMAND_LENGTH];
+    pid_t pid;
+    int status;
 
     while (1) {
         /* Display prompt */
@@ -37,7 +39,7 @@ int main() {
         command[strcspn(command, "\n")] = 0;
 
         /* Fork a child process */
-        pid_t pid = fork();
+        pid = fork();
 
         if (pid < 0) {
             perror("fork");
@@ -51,7 +53,6 @@ int main() {
             }
         } else {
             /* Parent process */
-            int status;
             if (waitpid(pid, &status, 0) == -1) {
                 perror("waitpid");
                 exit(EXIT_FAILURE);
@@ -70,3 +71,4 @@ int main() {
 
     return 0;
 }
+
