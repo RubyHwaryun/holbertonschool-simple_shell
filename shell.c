@@ -1,60 +1,59 @@
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <string.h> 
-#include <unistd.h> 
-#include <sys/wait.h> 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
-#define MAX_LINE 256 /* Maximum length of a command line */
+void print_prompt();
 
-int main() {
-  /* Define the prompt string */
-  char prompt[] = "#cisfun$ ";
-  char line[MAX_LINE];
-  int running = 1;
 
-  while (running) {
-    /* Print the prompt */
-    printf("%s", prompt);
+int shell(char **environ) {
+    char command[1024];  /* Increase buffer size for longer commands (optional) */
+    int status;
 
-    /* Read user input */
-    if (fgets(line, MAX_LINE, stdin) == NULL) {
-      /* Handle end of file (Ctrl+D) */
-      if (feof(stdin)) {
-        printf("\n");
-      } else {
-        perror("fgets");
-      }
-      break;
-    }
+    while (1) {
+        print_prompt();
 
-    /* Remove trailing newline */
-    line[strcspn(line, "\n")] = '\0';
-
-    if (strcmp(line, "exit") == 0) {
-      /* Handle exit command */
-      running = 0;
-    } else {
-      /* Fork a child process */
-      pid_t pid = fork();
-
-      if (pid < 0) {
-        perror("fork");
-        continue;
-      } else if (pid == 0) {
-        /* Child process */
-        /* Replace current process with the desired program */
-        if (execve(line, NULL, environ) == -1) {
-          printf("./shell: %s: No such file or directory\n", line);
+        /* Read command from user */
+        if (fgets(command, sizeof(command), stdin) == NULL) {
+            if (feof(stdin)) {  /* Handle Ctrl+D */
+                printf("\n");
+                break;
+            } else {
+                perror("fgets");
+                return EXIT_FAILURE;
+            }
         }
-        exit(EXIT_FAILURE);
-      } else {
-        /* Parent process */
-        /* Wait for child process to finish */
-        int status;
-        wait(&status);
-      }
-    }
-  }
 
-  return 0;
+        /* Remove trailing newline from command */
+        command[strcspn(command, "\n")] = '\0';
+
+        /* Check for empty command */
+        if (strlen(command) == 0) {
+            continue;
+        }
+
+        /* Create a child process */
+        pid_t child_pid = fork();
+
+        if (child_pid < 0) {
+            perror("fork");
+            continue;
+        } else if (child_pid == 0) {
+            /* Child process */
+            /* Use execve to execute command with environment */
+            execve(command, NULL, environ);
+            perror("execve");  /* Print error if execve fails */
+            exit(EXIT_FAILURE);
+        } else {
+            /* Parent process */
+            waitpid(child_pid, &status, 0);  /* Wait for child to finish */
+
+            if (!WIFEXITED(status) || WEXITSTATUS(status) != EXIT_SUCCESS) {
+                printf("Command failed.\n");
+            }
+        }
+    }
+
+    return EXIT_SUCCESS;
 }
