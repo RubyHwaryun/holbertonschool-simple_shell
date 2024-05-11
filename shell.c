@@ -1,8 +1,8 @@
-#include <stdio.h> /* Standard input/output functions */
-#include <stdlib.h> /* Standard library functions, including exit */
-#include <string.h> /* String manipulation functions */
-#include <unistd.h> /* Unix standard function calls, including fork, execve */
-#include <sys/wait.h> /* Wait related functions */
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <unistd.h> 
+#include <sys/wait.h> 
 
 #define MAX_LINE 256 /* Maximum length of a command line */
 
@@ -58,4 +58,3 @@ int main() {
 
   return 0;
 }
-
