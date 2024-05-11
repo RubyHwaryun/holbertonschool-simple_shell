@@ -6,12 +6,13 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <signal.h>
+#include <fcntl.h>
 
 #define MAX_COMMAND_LENGTH 100
 
+/* Function to display prompt */
 void display_prompt() {
-    printf("$ ");
-    fflush(stdout);
+    write(STDOUT_FILENO, "$ ", 2); // Using write instead of printf for prompt
 }
 
 int main() {
@@ -24,19 +25,18 @@ int main() {
         display_prompt();
 
         /* Read command */
-        if (fgets(command, sizeof(command), stdin) == NULL) {
+        ssize_t num_read = read(STDIN_FILENO, command, sizeof(command));
+        if (num_read == -1) {
+            perror("read");
+            exit(EXIT_FAILURE);
+        } else if (num_read == 0) {
             /* Handle EOF */
-            if (feof(stdin)) {
-                printf("\nExiting shell...\n");
-                break;
-            } else if (ferror(stdin)) {
-                perror("fgets");
-                exit(EXIT_FAILURE);
-            }
+            write(STDOUT_FILENO, "\nExiting shell...\n", 19); // Using write instead of printf
+            break;
         }
 
-        /* Remove newline character */
-        command[strcspn(command, "\n")] = 0;
+        /* Null-terminate the command */
+        command[num_read - 1] = '\0'; // Remove newline character
 
         /* Fork a child process */
         pid = fork();
@@ -46,10 +46,12 @@ int main() {
             exit(EXIT_FAILURE);
         } else if (pid == 0) {
             /* Child process */
-            if (execlp(command, command, NULL) == -1) {
+            if (execve(command, (char *[]) {command, NULL}, NULL) == -1) {
                 /* Handle command not found */
-                printf("Command not found: %s\n", command);
-                exit(EXIT_FAILURE);
+                char error_msg[100];
+                snprintf(error_msg, sizeof(error_msg), "Command not found: %s\n", command);
+                write(STDOUT_FILENO, error_msg, strlen(error_msg)); // Using write instead of printf
+                _exit(EXIT_FAILURE); // Using _exit instead of exit in child process
             }
         } else {
             /* Parent process */
@@ -60,11 +62,15 @@ int main() {
             if (WIFEXITED(status)) {
                 /* Child exited normally */
                 if (WEXITSTATUS(status) == EXIT_FAILURE) {
-                    fprintf(stderr, "Command failed: %s\n", command);
+                    char error_msg[100];
+                    snprintf(error_msg, sizeof(error_msg), "Command failed: %s\n", command);
+                    write(STDERR_FILENO, error_msg, strlen(error_msg)); // Using write instead of fprintf
                 }
             } else if (WIFSIGNALED(status)) {
                 /* Child terminated by signal */
-                fprintf(stderr, "Command terminated by signal: %s\n", command);
+                char error_msg[100];
+                snprintf(error_msg, sizeof(error_msg), "Command terminated by signal: %s\n", command);
+                write(STDERR_FILENO, error_msg, strlen(error_msg)); // Using write instead of fprintf
             }
         }
     }
