@@ -48,7 +48,9 @@ int main() {
             exit(EXIT_FAILURE);
         } else if (pid == 0) {
             /* Child process */
-            char *args[] = {command, NULL}; /* Declare arguments array before execve call */
+            char *args[2]; /* Declare arguments array without initialization */
+            args[0] = command; /* Initialize args[0] with command */
+            args[1] = NULL; /* Set the last element to NULL */
             if (execve(command, args, NULL) == -1) {
                 /* Handle command not found */
                 char error_msg[MAX_ERROR_MSG_LENGTH];
