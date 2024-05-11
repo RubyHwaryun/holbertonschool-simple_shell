@@ -59,6 +59,7 @@ int main(int argc, char *argv[]) {
   size_t line_size = MAX_LINE;
   char line[MAX_LINE];
   char *argv_list[MAX_ARGS];
+  char *line_buffer = malloc(line_size * sizeof(char));  /* Allocate memory*/
 
   if (argc > 1) {  /* Non-interactive mode */
     FILE *fp = fopen(argv[1], "r");
@@ -66,8 +67,6 @@ int main(int argc, char *argv[]) {
       perror("fopen");
       return 1;
     }
-
-    char *line_buffer = malloc(line_size * sizeof(char));  /* Allocate memory*/
 
     while (getline(&line_buffer, &line_size, fp) != -1) {
       if (line_buffer[strlen(line_buffer) - 1] == '\n') {
