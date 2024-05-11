@@ -10,8 +10,8 @@ int parse_line(char *line, char **argv) {
     token = strtok(NULL, sep);
   }
 
-  argv[num_args] = NULL;  /* NULL terminate the argument list
-  return num_args; */
+  argv[num_args] = NULL;  /* NULL terminate the argument list*/
+  return num_args;
 }
 
 int execute(char **argv) {
