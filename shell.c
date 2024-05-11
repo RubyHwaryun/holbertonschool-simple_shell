@@ -94,5 +94,6 @@ int main(int argc, char *argv[]) {
     execute(argv_list);
   }
 
+  free(line_buffer);
   return 0;
 }
