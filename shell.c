@@ -10,11 +10,25 @@ int parse_line(char *line, char **argv) {
     token = strtok(NULL, sep);
   }
 
-  argv[num_args] = NULL;  /* NULL terminate the argument list*/
-  return num_args;
+  argv[num_args] = NULL;  /* NULL terminate the argument list*/     return num_args; 
 }
 
 int execute(char **argv) {
+  pid_t pid = fork();
+  if (pid == -1) {
+    perror("fork");
+    return 1;
+  } else if (pid == 0) {
+    /* Child process */
+    if (execve(argv[0], argv, NULL) == -1) {
+      perror(argv[0]);
+      exit(1);
+    }
+  } else {
+    /* Parent process */
+    wait(NULL);
+  }
+  
   if (argv[0] == NULL) {  /* Empty command */
     return 1;
   }
@@ -31,22 +45,6 @@ int execute(char **argv) {
   } else if (strcmp(argv[0], "exit") == 0) {
     exit(0);
   }
-
-  pid_t pid = fork();
-  if (pid == -1) {
-    perror("fork");
-    return 1;
-  } else if (pid == 0) {
-    /* Child process */
-    if (execve(argv[0], argv, NULL) == -1) {
-      perror(argv[0]);
-      exit(1);
-    }
-  } else {
-    /* Parent process */
-    wait(NULL);
-  }
-
   return 1;
 }
 
