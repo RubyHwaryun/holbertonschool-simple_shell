@@ -1,4 +1,6 @@
 #include "shell.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 int parse_line(char *line, char **argv) {
   int num_args = 0;
@@ -64,14 +66,17 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    while (fgets(line, MAX_LINE, fp) != NULL) {
-      if (line[strlen(line) - 1] == '\n') {
-        line[strlen(line) - 1] = '\0';  /*Remove trailing newline*/
+    size_t line_size = MAX_LINE;
+    char *line_buffer = malloc(line_size * sizeof(char));  /* Allocate memory*/
+
+    while (getline(&line_buffer, &line_size, fp) != -1) {
+      if (line_buffer[strlen(line_buffer) - 1] == '\n') {
+        line_buffer[strlen(line_buffer) - 1] = '\0';  /* Remove trailing newline*/
       }
       parse_line(line, argv_list);
       execute(argv_list);
     }
-
+    free(line_buffer);  /* Free allocated memory */
     fclose(fp);
     return 0;
   }
