@@ -2,13 +2,21 @@
 #include <stdlib.h>
 #include "shell.h"
 
-#define MAX_COMMAND_LENGTH 1024
 #define MAX_ARGUMENTS 64
 
 char *get_input() {
-    char *input = (char *)malloc(MAX_COMMAND_LENGTH * sizeof(char));
+    char *input = NULL;
+    size_t input_size = 0;
     printf("$ ");
-    fgets(input, MAX_COMMAND_LENGTH, stdin);
+    ssize_t num_chars_read = getline(&input, &input_size, stdin);
+    if (num_chars_read == -1) {
+        fprintf(stderr, "Error reading input\n");
+        free(input);
+        exit(EXIT_FAILURE);
+    }
+    if (input[num_chars_read - 1] == '\n') {
+        input[num_chars_read - 1] = '\0';
+    }
     return input;
 }
 
