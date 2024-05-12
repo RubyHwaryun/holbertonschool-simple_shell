@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "shell.h"
 
 #define MAX_COMMAND_LENGTH 1024
 #define MAX_ARGUMENTS 64
