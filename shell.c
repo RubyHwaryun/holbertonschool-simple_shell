@@ -2,17 +2,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int parse_line(char *line, char **argv) {
+int parse_line(char *line, char ***argv) {
   int num_args = 0;
   char *sep = " ";
   char *token = strtok(line, sep);
 
+  *argv = (char **)malloc(MAX_ARGS * sizeof(char *));
+  if (*argv == NULL) {
+    perror("malloc");
+    exit(1);
+  }
+
   while (token != NULL) {
-    argv[num_args++] = token;
+    (*argv)[num_args++] = strdup(token); /* Duplicate the token*/
     token = strtok(NULL, sep);
   }
 
-  argv[num_args] = NULL;  /* NULL terminate the argument list*/     return num_args; 
+  (*argv)[num_args] = NULL;  /* NULL terminate the argument list*/
+  return num_args;
 }
 
 int execute(char **argv) {
@@ -30,7 +37,7 @@ int execute(char **argv) {
     /* Parent process */
     wait(NULL);
   }
-  
+
   if (argv[0] == NULL) {  /* Empty command */
     return 1;
   }
@@ -58,7 +65,7 @@ void print_prompt(void) {
 int main(int argc, char *argv[]) {
   size_t line_size = MAX_LINE;
   char line[MAX_LINE];
-  char *argv_list[MAX_ARGS];
+  char **argv_list = NULL;
   char *line_buffer = malloc(line_size * sizeof(char));  /* Allocate memory*/
 
   if (argc > 1) {  /* Non-interactive mode */
@@ -72,7 +79,7 @@ int main(int argc, char *argv[]) {
       if (line_buffer[strlen(line_buffer) - 1] == '\n') {
         line_buffer[strlen(line_buffer) - 1] = '\0';  /* Remove trailing newline*/
       }
-      parse_line(line, argv_list);
+      parse_line(line_buffer, &argv_list);
       execute(argv_list);
     }
     free(line_buffer);  /* Free allocated memory */
@@ -86,12 +93,22 @@ int main(int argc, char *argv[]) {
       break;  /* Exit on EOF */
     }
 
-    if (line[strlen(line) - 1] == '\n') {
-      line[strlen(line) - 1] = '\0';  /* Remove trailing newline*/
+    if (line_buffer[strlen(line_buffer) - 1] == '\n') {
+      line_buffer[strlen(line_buffer) - 1] = '\0';  /* Remove trailing newline*/
     }
 
-    parse_line(line, argv_list);
+    parse_line(line_buffer, &argv_list);
     execute(argv_list);
+  }
+
+  /* Free allocated memory */
+  if (argv_list != NULL) {
+    int i = 0;
+    while (argv_list[i] != NULL) {
+      free(argv_list[i]);
+      i++;
+    }
+    free(argv_list);
   }
 
   free(line_buffer);  /* Free allocated memory */
