@@ -11,5 +11,6 @@
 #define MAX_ARGS 64
 
 char *get_input();
+char **parse_input(char *input);
 
 #endif

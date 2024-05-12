@@ -10,3 +10,16 @@ char *get_input() {
     fgets(input, MAX_COMMAND_LENGTH, stdin);
     return input;
 }
+
+char **parse_input(char *input) {
+    char **arguments = (char **)malloc(MAX_ARGUMENTS * sizeof(char *));
+    char *argument = strtok(input, " \n");
+    int i = 0;
+    while (argument != NULL) {
+        arguments[i++] = argument;
+        argument = strtok(NULL, " \n");
+    }
+    arguments[i] = NULL;
+    return arguments;
+}
+
