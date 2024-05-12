@@ -1,27 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #include "shell.h"
 
 #define MAX_ARGUMENTS 64
 
 char *get_input() {
-    ssize_t num_chars_read;
     char *input = NULL;
     size_t input_size = 0;
+    ssize_t num_chars_read;
+    int index = 0;
+    char c;
 
     printf("$ ");
-    num_chars_read = getline(&input, &input_size, stdin);
+
+    while ((num_chars_read = read(STDIN_FILENO, &c, 1)) > 0) {
+        if (c == '\n') {
+            break;
+        }
+        input = realloc(input, input_size + 1);
+        if (input == NULL) {
+            fprintf(stderr, "Error: Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+        input[index++] = c;
+        input_size++;
+    }
 
     if (num_chars_read == -1) {
-        if (input != NULL) {
-            free(input);
-        }
-        fprintf(stderr, "Error: End of file reached\n");
+        perror("Error reading input");
+        free(input);
         exit(EXIT_FAILURE);
     }
-    if (input[num_chars_read - 1] == '\n') {
-        input[num_chars_read - 1] = '\0';
+
+    if (input_size > 0 && input[input_size - 1] == '\n') {
+        input[input_size - 1] = '\0';
+    } else {
+        input = realloc(input, input_size + 1);
+        if (input == NULL) {
+            fprintf(stderr, "Error: Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+        input[input_size] = '\0';
     }
+
     return input;
 }
 
@@ -36,7 +60,6 @@ char **parse_input(char *input) {
     arguments[i] = NULL;
     return arguments;
 }
-
 
 int main() {
     while (1) {
