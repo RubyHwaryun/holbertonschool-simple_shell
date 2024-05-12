@@ -1,6 +1,6 @@
 #include "shell.h"
 
-void execute(char **arguments) {
+int execute(char **arguments) {
     pid_t pid;
     int status;
 

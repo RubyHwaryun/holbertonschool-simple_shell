@@ -16,7 +16,7 @@ extern char **environ;
 
 char *get_input();
 char **parse_input(char *input);
-void execute(char **arguments);
+int execute(char **arguments);
 void print_env();
 
 #endif
