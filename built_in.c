@@ -13,13 +13,13 @@ int num_is_positive(char *com)
   int i = 0;
 
   if (com[0] == '-')
-     return (-1);
+    return (-1);
   for (i = 0; com[i]; i++)
   {
-    if (com[i] < 48 || com[i] > 57)
-      return (-1);
+  if (com[i] < 48 || com[i] > 57)
+    return (-1);
   }
-  return (0);
+return (0);
 }
 
 /**
