@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
 
   while (1) {
     print_prompt();
-    if (fgets(line, MAX_LINE, stdin) == NULL) {
+    if (getline(&line_buffer, &line_size, stdin) == -1) {
       break;  /* Exit on EOF */
     }
 
@@ -94,6 +94,6 @@ int main(int argc, char *argv[]) {
     execute(argv_list);
   }
 
-  free(line_buffer);
+  free(line_buffer);  /* Free allocated memory */
   return 0;
 }
