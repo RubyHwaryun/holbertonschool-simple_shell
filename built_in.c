@@ -8,16 +8,16 @@
 */
 int num_is_positive(char *com)
 {
-  int i = 0;
+int i = 0;
 
-  if (com[0] == '-')
+if (com[0] == '-')
+  return (-1);
+for (i = 0; com[i]; i++)
+{
+  if (com[i] < 48 || com[i] > 57)
     return (-1);
-  for (i = 0; com[i]; i++)
-  {
-    if (com[i] < 48 || com[i] > 57)
-      return (-1);
-  }
-  return (0);
+}
+return (0);
 }
 /**
 *_atoi - transform a char in an integer
@@ -26,9 +26,9 @@ int num_is_positive(char *com)
 */
 int _atoi(char *com)
 {
-  int n = 0, sign = 1, result = 0;
+int n = 0, sign = 1, result = 0;
 
-  for (n = result = 0; com[n]; n++)
+for (n = result = 0; com[n]; n++)
   {
     if (com[n] == '-')
       sign *= -1;
