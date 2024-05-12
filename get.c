@@ -2,7 +2,9 @@
 
 int count_args(char *input, int size) {
     int count = 0;
-    for (int i = 1; i < size; i++) {
+    int i;
+
+    for (i = 1; i < size; i++) {
         if ((input[i - 1] == ' ' && (input[i] != ' ' && input[i] != '\n')) ||
             (i == 1 && input[i - 1] != ' ')) {
             count++;
