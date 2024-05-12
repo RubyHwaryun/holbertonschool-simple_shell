@@ -1,7 +1,9 @@
-#include "shell.h"
+#include "main.h"
 
-int execute(char **arguments) {
-    pid_t pid;
-    int status;
-    return status;
+void print_env(void) {
+    int i = 0;
+    while (environ[i] != NULL) {
+        printf("%s\n", environ[i]);
+        i++;
+    }
 }
