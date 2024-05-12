@@ -30,12 +30,12 @@ int n = 0, sign = 1, result = 0;
 
 for (n = result = 0; com[n]; n++)
 {
-  if (com[n] == '-')
-    sign *= -1;
-  if (com[n] >= '0' && com[n] <= '9')
-    result = 10 * result - (com[n] - '0');
-  if (result < 0 && (com[n] < '0' || com[n] > '9'))
-    break;
+if (com[n] == '-')
+  sign *= -1;
+if (com[n] >= '0' && com[n] <= '9')
+  result = 10 * result - (com[n] - '0');
+if (result < 0 && (com[n] < '0' || com[n] > '9'))
+  break;
   }
   if (sign > 0)
     result *= -1;
