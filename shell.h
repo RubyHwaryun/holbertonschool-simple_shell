@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 #define MAX_PATH_LENGTH 1024
 #define MAX_ENV_VARIABLES 256
