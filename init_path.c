@@ -8,7 +8,7 @@ void find_path(char **var, int *i, int *j)
     {
         while (var[*i][*j])
         {
-            if (var[*i][*j] == '=' && strncmp(var[*i], "PATH=", 5) == 0) 
+            if (var[*i][*j] == '=' && strcmp(var[*i], "PATH=") == 0) 
                 return;
             (*j)++;
         }
