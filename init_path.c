@@ -1,5 +1,7 @@
 #include "shell.h"
 
+char **_strtok(char *str, char delim);
+
 char **path_var = NULL;
 
 void find_path(char **var, int *i, int *j)
