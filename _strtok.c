@@ -2,26 +2,43 @@
 
 char **_strtok(char *str, char delim)
 {
-    if (str == NULL)
-        return NULL;
-
+    char **array;
+    char *start, *end;
+    int i = 0, j = 1;
     int max_tokens = 10;
-    char **array = malloc(sizeof(char *) * max_tokens);
-    if (array == NULL)
-        return NULL;
 
-    int i = 0;
-    char *token = strtok(str, &delim);
-    while (token != NULL) {
-        array[i++] = strdup(token);
-        if (i >= max_tokens) {
-            max_tokens *= 2;
-            array = realloc(array, sizeof(char *) * max_tokens);
-            if (array == NULL)
-                return NULL;
+    if (str == NULL)
+        return (NULL);
+
+    array = malloc(sizeof(char *) * max_tokens);
+
+    if (array == NULL)
+        return (NULL);
+
+    while (str[i])
+    {
+        if (str[i] != delim)
+        {
+            start = str + i;
+            while (str[i] != delim && str[i])
+                i++;
+            if (str[i] == '\0')
+            {
+                array[j - 1] = strdup(start);
+                j++;
+                break;
+            }
+            else
+            {
+                end = str + i;
+                *end = '\0';
+                array[j - 1] = strdup(start), *end = delim, start = end;
+            }
+            j++;
         }
-        token = strtok(NULL, &delim);
+        i++;
     }
-    array[i] = NULL;
-    return array;
+
+    array[j - 1] = NULL;
+    return (array);
 }
