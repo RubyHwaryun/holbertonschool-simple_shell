@@ -1,1 +1,100 @@
-here is gonna be 'man' command explainer
+SH DESCRIPTION
+
+The
+.B hsh
+command interpreter, or shell, is a versatile tool for executing commands. It offers both interactive and non-interactive modes of operation.
+
+.SH SYNOPSIS
+
+To run in interactive mode, simply execute:
+
+.B ./hsh
+
+To run in non-interactive mode, you can pass a command string or file through a pipe:
+
+.B echo [command_string | file] | ./hsh
+
+.SH FUNCTIONALITY
+
+.B hsh
+supports built-in commands like
+.I exit
+and
+.I env,
+in addition to executing external commands.
+
+In interactive mode, it provides a prompt for user input, allowing commands to be entered and executed line by line.
+
+In non-interactive mode, it reads commands from a file or command string provided via standard input.
+
+.SH COMMAND EXECUTION
+
+When a command is entered, the shell identifies the command name and its arguments. If the command is a built-in, it executes the built-in command. Otherwise, it searches for the command in the PATH environment variable and executes it if found.
+
+.SH BUILT-IN COMMANDS
+
+The shell includes built-in commands that perform specific functions:
+
+.B env
+
+Print the current environment variables.
+.B exit
+
+Cause the shell to exit, with the exit status reflecting the last executed command.
+.SH RETURN VALUE
+
+The return value of the last executed command is available for use after the shell encounters the
+.I EOF
+condition (end-of-file) or when the built-in
+.I exit
+command is invoked.
+
+.SH USAGE EXAMPLES
+
+Interactive mode usage:
+
+.BR
+($) pwd
+.BR
+/home/user/simple_shell
+.BR
+($) exit
+.BR
+$
+
+Non-interactive mode usage with arguments:
+
+.BR
+($) ls -l
+.BR
+total 72
+.BR
+-rw-rw-r-- 1 user user 343 Apr 12 01:02 built_in.c
+.BR
+-rw-rw-r-- 1 user user 850 Apr 12 01:02 error.c
+.BR
+-rw-rw-r-- 1 user user 555 Apr 12 14:27 execute_line.c
+.BR
+...
+
+Non-interactive mode usage with a command string:
+
+.BR
+$ echo "/bin/ls" | ./hsh
+.BR
+built_in.c _getenv.c man_1_simple_shell shell.c split_line.c
+.BR
+error.c hsh mini_shell shell.h useful_func.c
+.BR
+...
+
+.SH ERROR HANDLING
+
+When a command encounters an error, the shell provides clear error messages to aid troubleshooting:
+
+.BR
+$ echo "non-interactive" | ./hsh
+.BR
+./hsh: 1: non-interactive: not found
+.BR
+$
