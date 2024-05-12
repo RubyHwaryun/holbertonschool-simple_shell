@@ -1,81 +1,47 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
 #include "shell.h"
-
-#define MAX_ARGUMENTS 64
-
-char *get_input() {
-    char *input = NULL;
-    size_t input_size = 0;
-    ssize_t num_chars_read;
-    int index = 0;
-    char c;
-
-    printf("$ ");
-
-    while ((num_chars_read = read(STDIN_FILENO, &c, 1)) > 0) {
-        if (c == '\n') {
-            break;
-        }
-        input = realloc(input, input_size + 1);
-        if (input == NULL) {
-            fprintf(stderr, "Error: Memory allocation failed\n");
-            exit(EXIT_FAILURE);
-        }
-        input[index++] = c;
-        input_size++;
-    }
-
-    if (num_chars_read == -1) {
-        perror("Error reading input");
-        free(input);
-        exit(EXIT_FAILURE);
-    }
-
-    if (input_size > 0 && input[input_size - 1] == '\n') {
-        input[input_size - 1] = '\0';
-    } else {
-        input = realloc(input, input_size + 1);
-        if (input == NULL) {
-            fprintf(stderr, "Error: Memory allocation failed\n");
-            exit(EXIT_FAILURE);
-        }
-        input[input_size] = '\0';
-    }
-
-    return input;
+/**
+*INThandler - fuction invoked for a signal function and show the prompt
+*@sig_n: number of the signal
+*/
+void INThandler(int sig_n)
+{
+    (void)sig_n;
+    write(STDOUT_FILENO, "\n($) ", 5);
 }
+/**
+*main - Program that is a simple UNIX command interpreter
+*@argc: argument count
+*@argv: argument char-pointers array
+*@env: the environment
+*Return: 0
+*/
+int main(int argc, char **argv, char **env)
+{
+    char *line = NULL;
+    char **commands;
+    size_t bufsize = 0;
+    ssize_t line_len = 0, count = 0;
+    int exit_st = 0;
+    (void)argc;
 
-char **parse_input(char *input) {
-    char **arguments = (char **)malloc(MAX_ARGUMENTS * sizeof(char *));
-    char *argument = strtok(input, " \n");
-    int i = 0;
-    while (argument != NULL) {
-        arguments[i++] = argument;
-        argument = strtok(NULL, " \n");
+    while (1)
+    {
+        if (isatty(STDIN_FILENO) == 1)
+            write(1, "($) ", 4);
+        signal(SIGINT, INThandler);
+        line_len = getline(&line, &bufsize, stdin);
+        count++;
+        if (special_case(line, line_len, &exit_st) == 3)
+            continue;
+        commands = split_line(line);
+        if (_strcmp("exit", *commands) == 0)
+            built_exit(line, commands, &exit_st, count);
+        else if (_strcmp("env", *commands) == 0)
+            built_env(commands, env, &exit_st);
+        else
+            execute_line(argv, commands, count, env, &exit_st, line);
+        fflush(stdin);
     }
-    arguments[i] = NULL;
-    return arguments;
-}
-
-int main() {
-    while (1) {
-        char *input = get_input();
-        char **arguments = parse_input(input);
-        if (strcmp(arguments[0], "exit") == 0) {
-            free(input);
-            free(arguments);
-            break;
-        } else if (strcmp(arguments[0], "env") == 0) {
-            print_env();
-        } else {
-            execute(arguments);
-        }
-        free(input);
-        free(arguments);
-    }
-    return 0;
+    free(line);
+    return (0);
 }
