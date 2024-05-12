@@ -14,9 +14,9 @@ char *get_input() {
 
     if (num_chars_read == -1) {
         if (input != NULL) {
-            free(input); // Free memory if getline() allocated input
+            free(input);
         }
-        fprintf(stderr, "Error: End of file reached\n");
+        fprintf(istderr, "Error: End of file reached\n");
         exit(EXIT_FAILURE);
     }
     if (input[num_chars_read - 1] == '\n') {
