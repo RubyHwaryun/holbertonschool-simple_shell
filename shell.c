@@ -40,5 +40,22 @@ void execute(char **arguments) {
         waitpid(pid, &status, 0);
     }
 }
- return 0;
+
+int main() {
+    while (1) {
+        char *input = get_input();
+        char **arguments = parse_input(input);
+        if (strcmp(arguments[0], "exit") == 0) {
+            free(input);
+            free(arguments);
+            break;
+        } else if (strcmp(arguments[0], "env") == 0) {
+            print_env();
+        } else {
+            execute(arguments);
+        }
+        free(input);
+        free(arguments);
+    }
+    return 0;
 }

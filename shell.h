@@ -7,10 +7,16 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#define MAX_LINE 2048
-#define MAX_ARGS 64
+#define MAX_PATH_LENGTH 1024
+#define MAX_ENV_VARIABLES 256
+#define MAX_ENV_LENGTH 1024
+#define MAX_TOKEN_LENGTH 64
+
+extern char **environ;
 
 char *get_input();
 char **parse_input(char *input);
+void execute(char **arguments);
+void print_env();
 
 #endif
