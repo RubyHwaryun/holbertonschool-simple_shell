@@ -13,7 +13,11 @@ char *get_input() {
     num_chars_read = getline(&input, &input_size, stdin);
 
     if (num_chars_read == -1) {
-        fprintf(stderr, "Error reading input\n");
+        if (feof(stdin)) {
+            fprintf(stderr, "Error: End of file reached\n");
+        } else if (ferror(stdin)) {
+            perror("Error reading input");
+        }
         free(input);
         exit(EXIT_FAILURE);
     }
