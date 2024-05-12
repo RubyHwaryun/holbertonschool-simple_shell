@@ -70,6 +70,6 @@ char *_strdup(char *str)
   dupl = malloc(_strlen(str) + 1);
   if (dupl == NULL)
     return (NULL);
-  _strcpy(dupl, str);
+  _strncpy(dupl, str);
   return (dupl);
 }
