@@ -13,12 +13,10 @@ char *get_input() {
     num_chars_read = getline(&input, &input_size, stdin);
 
     if (num_chars_read == -1) {
-        if (feof(stdin)) {
-            fprintf(stderr, "Error: End of file reached\n");
-        } else if (ferror(stdin)) {
-            perror("Error reading input");
+        if (input != NULL) {
+            free(input); // Free memory if getline() allocated input
         }
-        free(input);
+        fprintf(stderr, "Error: End of file reached\n");
         exit(EXIT_FAILURE);
     }
     if (input[num_chars_read - 1] == '\n') {
