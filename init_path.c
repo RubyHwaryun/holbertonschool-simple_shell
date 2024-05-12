@@ -1,4 +1,6 @@
 #include "shell.h"
+#include <unistd.h>
+#include <string.h> 
 
 extern char **path_var;
 
@@ -22,19 +24,24 @@ void find_path(char **var, int *i, int *j)
 char **get_path(char **env)
 {
     int i = 0, j = 0;
+    char *path; 
+
+    path = getenv("PATH");
+
     char **array;
+
+    if (!path)
+    {
+        return NULL;
+    }
 
     find_path(env, &i, &j);
     if (i == 0 && j == 0)
     {
         return (NULL);
     }
-    char *path = getenv("PATH");
-    if (!path)
-    {
-        return NULL;
-    }
-    array = _strtok(path, ":");
+
+    array = strtok(path, ":");
     if (!array)
     {
         free(array);
