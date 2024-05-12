@@ -8,8 +8,10 @@ char *get_input() {
     ssize_t num_chars_read
     char *input = NULL;
     size_t input_size = 0;
+
     printf("$ ");
     num_chars_read = getline(&input, &input_size, stdin);
+
     if (num_chars_read == -1) {
         fprintf(stderr, "Error reading input\n");
         free(input);
