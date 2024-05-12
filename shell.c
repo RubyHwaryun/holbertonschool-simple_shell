@@ -64,7 +64,6 @@ void print_prompt(void) {
 
 int main(int argc, char *argv[]) {
   size_t line_size = MAX_LINE;
-  char line[MAX_LINE];
   char **argv_list = NULL;
   char *line_buffer = malloc(line_size * sizeof(char));  /* Allocate memory*/
 
