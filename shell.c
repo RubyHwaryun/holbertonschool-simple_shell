@@ -1,6 +1,7 @@
 #include "shell.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int parse_line(char *line, char ***argv) {
   int num_args = 0;
@@ -14,7 +15,12 @@ int parse_line(char *line, char ***argv) {
   }
 
   while (token != NULL) {
-    (*argv)[num_args++] = strdup(token); /* Duplicate the token*/
+    (*argv)[num_args++] = strdup(token);
+    if ((*argv)[num_args - 1] == NULL) {
+      perror("strdup");
+      /* Handle the error (e.g., exit or indicate failure) */
+      return -1;
+    }
     token = strtok(NULL, sep);
   }
 
@@ -44,10 +50,12 @@ int execute(char **argv) {
 
   if (strcmp(argv[0], "cd") == 0) {
     if (argv[1] == NULL) {
-      chdir(getenv("HOME"));  /* Change to home directory */
+      chdir(getenv("HOME")) !=0; {
+        perror("chdir");
+      } /* Change to home directory */
     } else {
       if (chdir(argv[1]) != 0) {
-        perror("hsh");
+        perror("chdir");
       }
     }
     return 1;
@@ -64,13 +72,19 @@ void print_prompt(void) {
 
 int main(int argc, char *argv[]) {
   size_t line_size = MAX_LINE;
+  char *line_buffer = malloc(line_size * sizeof(char));  /* Dynamically allocate memory for line_buffer */
   char **argv_list = NULL;
-  char *line_buffer = malloc(line_size * sizeof(char));  /* Allocate memory*/
+
+  if (line_buffer == NULL) {
+    perror("malloc");
+    return 1;
+  }
 
   if (argc > 1) {  /* Non-interactive mode */
     FILE *fp = fopen(argv[1], "r");
     if (fp == NULL) {
       perror("fopen");
+      free(line_buffer);  /* Free allocated memory */
       return 1;
     }
 
@@ -80,36 +94,40 @@ int main(int argc, char *argv[]) {
       }
       parse_line(line_buffer, &argv_list);
       execute(argv_list);
+
+      /* Free each argument string after execution */
+      int i;
+      for (i = 0; argv_list[i] != NULL; i++) {
+        free(argv_list[i]);
+      }
+      free(argv_list);
+      argv_list = NULL;  /* Reset for next line */
     }
-    free(line_buffer);  /* Free allocated memory */
     fclose(fp);
-    return 0;
+  } else {
+    while (1) {
+      print_prompt();
+      if (getline(&line_buffer, &line_size, stdin) == -1) {
+        break;  /* Exit on EOF */
+      }
+
+      if (line_buffer[strlen(line_buffer) - 1] == '\n') {
+        line_buffer[strlen(line_buffer) - 1] = '\0';  /* Remove trailing newline*/
+      }
+
+      parse_line(line_buffer, &argv_list);
+      execute(argv_list);
+
+      /* Free each argument string and argv_list itself after execution */
+      int i;
+      for (i = 0; argv_list[i] != NULL; i++) {
+        free(argv_list[i]);
+      }
+      free(argv_list);
+      argv_list = NULL;  /* Reset for next iteration */
+    }
   }
 
-  while (1) {
-    print_prompt();
-    if (getline(&line_buffer, &line_size, stdin) == -1) {
-      break;  /* Exit on EOF */
-    }
-
-    if (line_buffer[strlen(line_buffer) - 1] == '\n') {
-      line_buffer[strlen(line_buffer) - 1] = '\0';  /* Remove trailing newline*/
-    }
-
-    parse_line(line_buffer, &argv_list);
-    execute(argv_list);
-  }
-
-  /* Free allocated memory */
-  if (argv_list != NULL) {
-    int i = 0;
-    while (argv_list[i] != NULL) {
-      free(argv_list[i]);
-      i++;
-    }
-    free(argv_list);
-  }
-
-  free(line_buffer);  /* Free allocated memory */
+  free(line_buffer);  /* Free dynamically allocated memory for line buffer */
   return 0;
 }
