@@ -16,4 +16,6 @@ int execute(char **arguments) {
     } else {
         waitpid(pid, &status, 0);
     }
+
+    return status;
 }
