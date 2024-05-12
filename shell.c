@@ -5,7 +5,7 @@
 #define MAX_ARGUMENTS 64
 
 char *get_input() {
-    ssize_t num_chars_read
+    ssize_t num_chars_read;
     char *input = NULL;
     size_t input_size = 0;
 
