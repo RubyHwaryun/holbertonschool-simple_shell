@@ -16,7 +16,7 @@ char *get_input() {
         if (input != NULL) {
             free(input);
         }
-        fprintf(istderr, "Error: End of file reached\n");
+        fprintf(stderr, "Error: End of file reached\n");
         exit(EXIT_FAILURE);
     }
     if (input[num_chars_read - 1] == '\n') {
